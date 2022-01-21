@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  star_war:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      target: dev
+    image: star_war
+    container_name: star_war
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./src:/usr/star_war/src
+    command: npm run start:dev
+    networks:
+      - star-war-network
+
+networks:
+  star-war-network:
+    driver: bridge
