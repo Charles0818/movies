@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MoviesModule } from './movies/movies.module';
 import dbConfig from './config/db.config';
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import dbConfig from './config/db.config';
       },
       inject: [ConfigService],
     }),
+    MoviesModule,
   ],
 })
 export class AppModule {}
