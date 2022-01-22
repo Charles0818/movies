@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Ip, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Ip, Param, Post, Query } from '@nestjs/common';
+import { CharacterQueryDto } from '../dto/CharacterQuery.dto';
 import { CommentDto } from '../dto/comment.dto';
 import { MoviesService } from '../services/movies.service';
 
@@ -32,5 +33,13 @@ export class MoviesController {
       ip_address: ip,
       movieId: id,
     });
+  }
+
+  @Get(':id/characters')
+  async getMovieCharacters(
+    @Param('id') id: string,
+    @Query() query: CharacterQueryDto,
+  ) {
+    return this.moviesService.getMovieCharacters(id, query);
   }
 }

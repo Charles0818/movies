@@ -5,6 +5,8 @@ import { TransformationService } from './transformation.service';
 import { CommentsService } from './comments.service';
 import { CommentDto } from '../dto/comment.dto';
 import { SuccessResponse } from 'src/utilities/succcessResponse';
+import { ICharacter } from 'src/interfaces/character.interface';
+import { CharacterQueryDto } from '../dto/CharacterQuery.dto';
 @Injectable()
 export class MoviesService {
   private BASEURL = 'https://swapi.py4e.com/api';
@@ -65,7 +67,41 @@ export class MoviesService {
     }
   }
 
-  async getMovieCharacters() {
-    // TODO
+  async getMovieCharacters(movieId: string, query?: CharacterQueryDto) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(`${this.BASEURL}/films/${movieId}`),
+      );
+      let characters: ICharacter[] = await Promise.all(
+        response.data.characters.map(async (character: string) => {
+          const response = await lastValueFrom(
+            this.httpService.get(`${character}`),
+          );
+          return this.transformation.transformMovieCharacter(response.data);
+        }),
+      );
+
+      if (query.filter) {
+        characters = characters.filter(
+          (character) => character.gender === query.filter,
+        );
+      }
+
+      if (query.sort) {
+        characters = this.transformation.sortCharacters(characters, query);
+      }
+
+      const metadata =
+        this.transformation.generateCharacterMetadata(characters);
+      return new SuccessResponse(
+        {
+          characters,
+          metadata,
+        },
+        'Movie characters fetched successfully',
+      );
+    } catch (error) {
+      throw new BadRequestException('Unable to fetch movie characters');
+    }
   }
 }
