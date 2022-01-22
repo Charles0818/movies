@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CommentRepository } from '../repositories/comment.repository';
 @Injectable()
-export class TranslatorService {
+export class TransformationService {
+  constructor(
+    @InjectRepository(CommentRepository)
+    private readonly commentRepo: CommentRepository,
+  ) {}
   async transformMovies(movies: any[]) {
     const transformdMovies = await Promise.all(
       movies.map(async (movie) => {
+        const id = movie.url.split('films/')[1].charAt();
         return {
-          id: movie.url.split('films/')[1].charAt(),
+          id,
           title: movie.title,
           opening_crawl: movie.opening_crawl,
           release_date: movie.release_date,
-          comment_count: await this.appendCommentCounts(movie.title),
+          comment_count: await this.appendCommentCounts(id),
         };
       }),
     );
@@ -20,8 +27,9 @@ export class TranslatorService {
   }
 
   async transformMovie(movie: any) {
+    const id = movie.url.split('films/')[1].charAt();
     return {
-      id: movie.url.split('films/')[1].charAt(),
+      id,
       title: movie.title,
       opening_crawl: movie.opening_crawl,
       release_date: movie.release_date,
@@ -29,12 +37,11 @@ export class TranslatorService {
       producer: movie.producer,
       created: movie.created,
       edited: movie.edited,
-      comment_count: await this.appendCommentCounts(movie.title),
+      comment_count: await this.appendCommentCounts(id),
     };
   }
 
-  async appendCommentCounts(title: string): Promise<number> {
-    // TODO: Query Comment Entity and count the number of comments belonging to a particular movie whose title was passed as a parameter
-    return 0;
+  async appendCommentCounts(movieId: string): Promise<number> {
+    return (await this.commentRepo.count({ where: { movieId } })) || 0;
   }
 }
