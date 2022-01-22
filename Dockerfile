@@ -15,14 +15,14 @@ COPY nest-cli.json \
     tsconfig.* \ 
     *env \
     # wait-for.sh \
-    .eslintrc.js \
+    # .eslintrc.js \
     .prettierrc \
     ./
 # bring in src from context
 COPY ./src/ ./src
 RUN npm install
 
-RUN yarn lint
+# RUN yarn lint
 RUN npm run build
 
 # use one of the smallest images possible
