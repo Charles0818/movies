@@ -1,24 +1,29 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-import { TranslatorService } from './translator.service';
+import { TransformationService } from './transformation.service';
+import { CommentsService } from './comments.service';
+import { CommentDto } from '../dto/comment.dto';
+import { SuccessResponse } from 'src/utilities/succcessResponse';
 @Injectable()
 export class MoviesService {
   private BASEURL = 'https://swapi.py4e.com/api';
   constructor(
     private readonly httpService: HttpService,
-    private readonly translatorService: TranslatorService,
+    private readonly transformation: TransformationService,
+    private readonly commentsService: CommentsService,
   ) {}
   async getMovies() {
     try {
       const response = await lastValueFrom(
         this.httpService.get(`${this.BASEURL}/films`),
       );
-      const movies = await this.translatorService.transformMovies(
+      const movies = await this.transformation.transformMovies(
         response.data.results,
       );
       return movies;
     } catch (error) {
+      console.log(error);
       throw new BadRequestException('Unable to fetch star war movies');
     }
   }
@@ -28,19 +33,36 @@ export class MoviesService {
       const response = await lastValueFrom(
         this.httpService.get(`${this.BASEURL}/films/${id}`),
       );
-      const movie = await this.translatorService.transformMovie(response.data);
+      const movie = await this.transformation.transformMovie(response.data);
       return movie;
     } catch (error) {
       throw new BadRequestException('Unable to fetch the requested movie');
     }
   }
 
-  async getMovieComments() {
-    // TODO
+  async getMovieComments(movieId: string) {
+    try {
+      const { comments, count } = await this.commentsService.getComments(
+        movieId,
+      );
+      return new SuccessResponse(
+        { comments, count },
+        'Movie comments fetched successfully',
+      );
+    } catch (error) {
+      throw new BadRequestException('Unable to get movie comments');
+    }
   }
 
-  async postComment() {
-    // TODO
+  async postComment(
+    body: CommentDto & { ip_address: string; movieId: string },
+  ) {
+    try {
+      const comment = await this.commentsService.postComment(body);
+      return new SuccessResponse({ comment }, 'Comment posted successfully');
+    } catch (error) {
+      throw new BadRequestException('Unable to post comment');
+    }
   }
 
   async getMovieCharacters() {
