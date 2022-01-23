@@ -39,5 +39,5 @@ COPY --from=base /usr/star_war/node_modules/ ./node_modules/
 
 EXPOSE 5000
 # start
-CMD   node dist/seeder.js;  node --max-http-header-size 50000 dist/main.js 
+CMD   node dist/main.js 
 
